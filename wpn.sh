@@ -11,7 +11,9 @@ ssh $USER@$SERVER -i $SSH_KEY << EOF
 apt update
 apt install wireguard
 apt-get install wireguard-dkms wireguard-tools linux-headers-\$(uname -r) 
-mkdir ~/wireguard
+if ! [ -d wireguard ]; then
+  mkdir ~/wireguard
+fi
 cd ~/wireguard 
 umask 077 
 wg genkey | tee server_private_key | wg pubkey > server_public_key
@@ -35,8 +37,10 @@ systemctl restart wg-quick@wg0.service
 exit
 EOF
 # Client
-sudo pacman -S wireguard-tools
-sudo mkdir /etc/wireguard
+sudo pacman --noconfirm -S wireguard-tools
+if ! [ -d /etc/wireguard ]; then
+  sudo mkdir /etc/wireguard
+fi
 echo -e "[Interface]
 Address = $ADDRESS2
 PrivateKey = $(ssh $USER@$SERVER -i $SSH_KEY 'cat ~/wireguard/client_private_key')
@@ -47,5 +51,5 @@ PublicKey = $(ssh $USER@$SERVER -i $SSH_KEY 'cat ~/wireguard/server_public_key')
 Endpoint = $SERVER:$PORT
 AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 21" | sudo tee /etc/wireguard/wg0-client.conf
-sudo pacman -S openresolv
+sudo pacman --noconfirm -S openresolv
 sudo wg-quick up wg0-client
