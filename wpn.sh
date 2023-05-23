@@ -5,7 +5,7 @@ PORT=
 ADDRESS1=
 ADDRESS2=
 DNSIP=
-SSH_KEY=
+SSH_KEY=~/.ssh/
 # Server
 ssh $USER@$SERVER -i $SSH_KEY << EOF 
 apt update
@@ -41,6 +41,9 @@ sudo pacman --noconfirm -S wireguard-tools
 if ! [ -d /etc/wireguard ]; then
   sudo mkdir /etc/wireguard
 fi
+if ! [ -z "$(sudo wg show)" ]; then
+  sudo wg-quick down wg0-client
+fi
 echo -e "[Interface]
 Address = $ADDRESS2
 PrivateKey = $(ssh $USER@$SERVER -i $SSH_KEY 'cat ~/wireguard/client_private_key')
@@ -50,6 +53,6 @@ DNS = $DNSIP
 PublicKey = $(ssh $USER@$SERVER -i $SSH_KEY 'cat ~/wireguard/server_public_key')
 Endpoint = $SERVER:$PORT
 AllowedIPs = 0.0.0.0/0
-PersistentKeepalive = 21" | sudo tee /etc/wireguard/wg0-client.conf
+PersistentKeepalive = 21" | sudo tee /etc/wireguard/wg0-client.conf > /dev/null
 sudo pacman --noconfirm -S openresolv
 sudo wg-quick up wg0-client
