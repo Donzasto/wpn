@@ -33,7 +33,6 @@ PublicKey = \$(cat client_public_key)
 AllowedIPs = $ADDRESS2" > /etc/wireguard/wg0.conf
 chmod 600 /etc/wireguard/wg0.conf
 systemctl enable wg-quick@wg0.service
-systemctl restart wg-quick@wg0.service
 exit
 EOF
 # Client
@@ -55,4 +54,9 @@ Endpoint = $SERVER:$PORT
 AllowedIPs = 0.0.0.0/0
 PersistentKeepalive = 21" | sudo tee /etc/wireguard/wg0-client.conf > /dev/null
 sudo pacman --noconfirm -S openresolv
+#Server
+ssh $USER@$SERVER -i $SSH_KEY "
+systemctl restart wg-quick@wg0.service; 
+exit"
+#Client
 sudo wg-quick up wg0-client
